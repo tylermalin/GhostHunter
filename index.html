@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Haunted Pasadena: Scary Stories & Ghost Companion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            scary: {
+              bg: '#121417',
+              surface: '#1b1e23',
+              card: '#22262d',
+              cardHover: '#2a2f38',
+              border: '#2f3540',
+              accent: '#f7724f',
+              accentHover: '#ff5c30',
+              accentLight: '#ff8a6a',
+              textMuted: '#9aa0a6',
+              pillBlue: '#b9e5e8',
+              pillPink: '#f9cfcb',
+              pillPeach: '#fed8b1',
+              pillGreen: '#c4e7c7',
+              pillTeal: '#a6e3e9'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #121417; }
+    ::-webkit-scrollbar-thumb { background: #2f3540; border-radius: 9999px; }
+
+    /* Distressed horror header inspired by reference banner */
+    .distressed-title {
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #f7724f;
+      text-shadow: 2px 2px 0px #090a0c, 0 0 16px rgba(247, 114, 79, 0.45);
+    }
+
+    /* Red light preservation mode */
+    body.night-vision {
+      filter: grayscale(1) brightness(0.85) sepia(1) hue-rotate(-50deg) saturate(9);
+      background-color: #0b0202 !important;
+    }
+
+    /* Screen Torch Overlay */
+    #torch-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #ffffff;
+      z-index: 9999;
+    }
+
+    /* Glass card glow */
+    .story-card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+    }
+  </style>
+</head>
+<body class="bg-scary-bg text-slate-100 min-h-screen flex flex-col font-sans select-none antialiased relative pb-24">
+
+  <!-- Full-screen Torch Flashlight -->
+  <div id="torch-overlay" class="flex flex-col items-center justify-center p-6 text-slate-900 cursor-pointer" onclick="toggleTorch()">
+    <span class="text-7xl mb-4">🔦</span>
+    <p class="font-black text-2xl tracking-widest uppercase">Field Torch Active</p>
+    <p class="text-xs text-slate-600 mt-2 font-mono">Tap anywhere to extinguish light</p>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-box" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-11/12 max-w-sm pointer-events-none transition-all duration-300 opacity-0 transform -translate-y-4">
+    <div class="bg-scary-card border border-scary-accent/40 text-white px-4 py-3 rounded-2xl shadow-2xl text-xs flex items-center gap-3 backdrop-blur-md">
+      <span id="toast-icon" class="text-xl">👻</span>
+      <span id="toast-message" class="font-medium text-slate-200">Notice</span>
+    </div>
+  </div>
+
+  <!-- Top Mobile Bar -->
+  <header class="sticky top-0 z-40 bg-scary-bg/95 backdrop-blur-md px-4 pt-3 pb-2.5 flex items-center justify-between border-b border-scary-border/60">
+    <div class="flex items-center gap-2">
+      <div class="w-2.5 h-2.5 rounded-full bg-scary-accent animate-ping"></div>
+      <div>
+        <h1 class="distressed-title text-base sm:text-lg leading-none">Scary Stories</h1>
+        <p class="text-[10px] text-scary-textMuted font-mono mt-0.5">Pasadena Suicide Bridge Edition • with Oliver</p>
+      </div>
+    </div>
+
+    <!-- Quick action buttons -->
+    <div class="flex items-center gap-1.5">
+      <!-- Ambient creepy audio soundscape -->
+      <button id="btn-ambient-sound" onclick="toggleAmbientSound()" title="Toggle Atmospheric Ghost Drone" class="p-2 rounded-xl bg-scary-surface border border-scary-border hover:border-scary-accent text-slate-300 text-xs active:scale-95 transition flex items-center gap-1">
+        <span id="ambient-icon">🎵</span>
+        <span class="text-[10px] font-mono font-bold hidden sm:inline" id="ambient-text">AMBIENCE</span>
+      </button>
+
+      <!-- Torch Button -->
+      <button onclick="toggleTorch()" title="Torch" class="p-2 rounded-xl bg-scary-surface border border-scary-border hover:text-scary-accent text-slate-300 text-xs active:scale-95 transition">
+        🔦
+      </button>
+
+      <!-- Night Vision (Red Mode) -->
+      <button onclick="toggleNightVision()" id="btn-night-vision" title="Red Light Preservation" class="px-2.5 py-1.5 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-400 font-mono text-[11px] font-bold active:scale-95 transition">
+        RED
+      </button>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="flex-1 w-full max-w-md mx-auto px-4 pt-3 space-y-4">
+
+    <!-- ============================================== -->
+    <!-- SCREEN 1: DISCOVER / SCARY STORIES HOME        -->
+    <!-- Matches Screenshot 1                           -->
+    <!-- ============================================== -->
+    <div id="screen-stories" class="screen-view space-y-5">
+      
+      <!-- Top Title Search Row -->
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <span>SCARY STORIES</span>
+          <span class="text-xs bg-scary-card text-scary-accent px-2 py-0.5 rounded-full font-mono border border-scary-border">Pasadena</span>
+        </h2>
+        <button onclick="triggerSearchModal()" class="w-8 h-8 rounded-full bg-scary-card flex items-center justify-center text-slate-300 hover:text-white border border-scary-border">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Categories Pill Row (Matching Screenshot Tags) -->
+      <div>
+        <p class="text-xs text-scary-textMuted font-medium mb-2.5">categories</p>
+        <div class="flex items-center gap-2 overflow-x-auto pb-1.5 no-scrollbar">
+          <button onclick="filterStories('all')" class="cat-pill active flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-scary-accent text-slate-900 shadow-sm transition">
+            <span>💀</span>
+            <span>all legends</span>
+          </button>
+          <button onclick="filterStories('bridge')" class="cat-pill flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-scary-pillBlue text-slate-900 shadow-sm transition">
+            <span>🌉</span>
+            <span>suicide bridge</span>
+          </button>
+          <button onclick="filterStories('spirits')" class="cat-pill flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-scary-pillPink text-slate-900 shadow-sm transition">
+            <span>👻</span>
+            <span>ghost stories</span>
+          </button>
+          <button onclick="filterStories('appearance')" class="cat-pill flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-scary-pillPeach text-slate-900 shadow-sm transition">
+            <span>👤</span>
+            <span>appearance of dead</span>
+          </button>
+          <button onclick="filterStories('canyon')" class="cat-pill flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap bg-scary-pillGreen text-slate-900 shadow-sm transition">
+            <span>🌲</span>
+            <span>arroyo dark lore</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- "your recommendations" Carousel (Matches Screenshot 1 cards with etched skull art) -->
+      <div>
+        <div class="flex items-center justify-between mb-2.5">
+          <p class="text-xs text-scary-textMuted font-medium">your recommendations</p>
+          <span class="text-[11px] font-mono text-scary-accent cursor-pointer hover:underline" onclick="openStory('baby-miracle')">Featured</span>
+        </div>
+        
+        <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+          
+          <!-- Recommendation Card 1: The Weeping Mother & Miracle -->
+          <div onclick="openStory('baby-miracle')" class="min-w-[190px] w-[190px] bg-scary-card hover:bg-scary-cardHover border border-scary-border rounded-2xl p-3.5 cursor-pointer flex flex-col justify-between transition-all story-card-shadow group">
+            <div class="flex items-start justify-between">
+              <!-- Etched Skull / Macabre SVG Art -->
+              <div class="w-12 h-12 rounded-xl bg-scary-surface/80 p-1.5 flex items-center justify-center border border-scary-border/80 group-hover:border-scary-accent transition">
+                <svg viewBox="0 0 100 100" class="w-full h-full text-scary-accent" fill="currentColor">
+                  <path d="M50 15 C30 15 20 28 20 48 C20 60 26 70 34 76 L34 85 C34 87 36 89 39 89 L61 89 C64 89 66 87 66 85 L66 76 C74 70 80 60 80 48 C80 28 70 15 50 15 Z M36 45 C32 45 28 41 28 37 C28 33 32 29 36 29 C40 29 44 33 44 37 C44 41 40 45 36 45 Z M64 45 C60 45 56 41 56 37 C56 33 60 29 64 29 C68 29 72 33 72 37 C72 41 68 45 64 45 Z M50 63 C46 63 43 57 50 54 C57 57 54 63 50 63 Z"/>
+                  <rect x="40" y="80" width="4" height="6" fill="#121417"/>
+                  <rect x="48" y="80" width="4" height="6" fill="#121417"/>
+                  <rect x="56" y="80" width="4" height="6" fill="#121417"/>
+                </svg>
+              </div>
+              <button onclick="toggleBookmark('baby-miracle', event)" class="text-slate-400 hover:text-scary-accent transition">
+                <svg id="bm-baby-miracle" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="mt-4">
+              <h3 class="text-sm font-bold text-slate-100 group-hover:text-scary-accent transition leading-tight">the infant in the trees</h3>
+              <p class="text-[11px] text-scary-textMuted mt-1 font-mono">5 min • Reading</p>
+            </div>
+          </div>
+
+          <!-- Recommendation Card 2: 1919 Wet Concrete Curse -->
+          <div onclick="openStory('wet-concrete')" class="min-w-[190px] w-[190px] bg-scary-card hover:bg-scary-cardHover border border-scary-border rounded-2xl p-3.5 cursor-pointer flex flex-col justify-between transition-all story-card-shadow group">
+            <div class="flex items-start justify-between">
+              <div class="w-12 h-12 rounded-xl bg-scary-surface/80 p-1.5 flex items-center justify-center border border-scary-border/80 group-hover:border-scary-accent transition">
+                <!-- Macabre Raven / Bird Skull -->
+                <svg viewBox="0 0 100 100" class="w-full h-full text-amber-400" fill="currentColor">
+                  <path d="M30 20 C20 30 15 50 30 65 L20 70 L45 75 L70 90 L65 70 C75 60 85 45 80 30 C75 15 45 10 30 20 Z M45 35 C40 35 35 30 35 25 C35 20 40 15 45 15 C50 15 55 20 55 25 C55 30 50 35 45 35 Z"/>
+                </svg>
+              </div>
+              <button onclick="toggleBookmark('wet-concrete', event)" class="text-slate-400 hover:text-scary-accent transition">
+                <svg id="bm-wet-concrete" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="mt-4">
+              <h3 class="text-sm font-bold text-slate-100 group-hover:text-scary-accent transition leading-tight">entombed in pier three</h3>
+              <p class="text-[11px] text-scary-textMuted mt-1 font-mono">4 min • Reading</p>
+            </div>
+          </div>
+
+          <!-- Recommendation Card 3: Carradine's Lights Out -->
+          <div onclick="openStory('tunnel-lights')" class="min-w-[190px] w-[190px] bg-scary-card hover:bg-scary-cardHover border border-scary-border rounded-2xl p-3.5 cursor-pointer flex flex-col justify-between transition-all story-card-shadow group">
+            <div class="flex items-start justify-between">
+              <div class="w-12 h-12 rounded-xl bg-scary-surface/80 p-1.5 flex items-center justify-center border border-scary-border/80 group-hover:border-scary-accent transition">
+                <!-- Spooky Lantern / Tunnel Skull -->
+                <svg viewBox="0 0 100 100" class="w-full h-full text-emerald-400" fill="currentColor">
+                  <path d="M50 10 C35 10 25 25 25 40 C25 55 35 70 50 70 C65 70 75 55 75 40 C75 25 65 10 50 10 Z M38 35 C34 35 30 31 30 27 C30 23 34 19 38 19 C42 19 46 23 46 27 C46 31 42 35 38 35 Z M62 35 C58 35 54 31 54 27 C54 23 58 19 62 19 C66 19 70 23 70 27 C70 31 66 35 62 35 Z M30 80 L70 80 L65 95 L35 95 Z"/>
+                </svg>
+              </div>
+              <button onclick="toggleBookmark('tunnel-lights', event)" class="text-slate-400 hover:text-scary-accent transition">
+                <svg id="bm-tunnel-lights" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="mt-4">
+              <h3 class="text-sm font-bold text-slate-100 group-hover:text-scary-accent transition leading-tight">the lights out tunnel</h3>
+              <p class="text-[11px] text-scary-textMuted mt-1 font-mono">3 min • Reading</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Listen vs Read Toggle & List (Matching Screenshot 1 lower section) -->
+      <div>
+        <div class="flex items-center gap-4 border-b border-scary-border pb-2 mb-3">
+          <button onclick="toggleMode('listen')" id="mode-listen" class="text-sm font-bold text-white relative pb-1 transition">
+            <span>listen</span>
+            <span id="listen-bar" class="absolute bottom-0 left-0 right-0 h-0.5 bg-scary-accent rounded-full"></span>
+          </button>
+          <button onclick="toggleMode('read')" id="mode-read" class="text-sm font-bold text-scary-textMuted relative pb-1 hover:text-white transition">
+            <span>read</span>
+            <span id="read-bar" class="absolute bottom-0 left-0 right-0 h-0.5 bg-transparent rounded-full"></span>
+          </button>
+        </div>
+
+        <!-- Story Playlist Items -->
+        <div class="space-y-2.5" id="stories-playlist">
+          <!-- Rendered in JS -->
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- SCREEN 2: STORY READER & BRANCHING ADVENTURE  -->
+    <!-- Matches Screenshot 3                           -->
+    <!-- ============================================== -->
+    <div id="screen-reader" class="screen-view hidden space-y-4">
+      
+      <!-- Top Reader Header / Back button -->
+      <div class="flex items-center justify-between border-b border-scary-border pb-3">
+        <button onclick="showScreen('stories')" class="flex items-center gap-1.5 text-xs font-mono text-scary-accent hover:underline">
+          <span>←</span>
+          <span>back to stories</span>
+        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="shareActiveStory()" title="Share" class="p-1.5 rounded-lg bg-scary-card text-slate-300 hover:text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+            </svg>
+          </button>
+          <button id="reader-bookmark-btn" onclick="toggleActiveBookmark()" class="p-1.5 rounded-lg bg-scary-card text-slate-300 hover:text-scary-accent">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Story Reader Card (Light Parchment / Dark Slate Styled) -->
+      <div class="bg-[#1c2026] border border-scary-border rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+        
+        <!-- Story Title with Icon -->
+        <div class="flex items-center gap-2.5 mb-4 pb-2 border-b border-scary-border/60">
+          <span class="text-2xl" id="reader-icon">🌉</span>
+          <div>
+            <h2 id="reader-title" class="text-base font-black text-white lowercase">the phantom pedestrian</h2>
+            <p id="reader-meta" class="text-[10px] font-mono text-scary-accent">colorado st bridge • 1932 legend</p>
+          </div>
+        </div>
+
+        <!-- Etched Ink Macabre Illustration (Matches 3rd mockup) -->
+        <div class="w-full h-44 rounded-2xl bg-scary-bg/90 border border-scary-border flex items-center justify-center p-3 relative overflow-hidden mb-4">
+          <img id="reader-image" src="https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80" alt="Haunted Bridge" class="absolute inset-0 w-full h-full object-cover opacity-35 filter contrast-125 grayscale" onerror="this.src='https://placehold.co/600x400/181b20/f7724f?text=Colorado+Street+Bridge'"/>
+          
+          <div class="relative z-10 flex flex-col items-center text-center px-4">
+            <!-- Inline SVG etched Skull & Vines -->
+            <svg viewBox="0 0 120 120" class="w-16 h-16 text-slate-300 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]" fill="currentColor">
+              <path d="M60 20 C42 20 30 32 30 52 C30 64 36 74 44 80 L44 92 L76 92 L76 80 C84 74 90 64 90 52 C90 32 78 20 60 20 Z M46 48 C42 48 38 44 38 40 C38 36 42 32 46 32 C50 32 54 36 54 40 C54 44 50 48 46 48 Z M74 48 C70 48 66 44 66 40 C66 36 70 32 74 32 C78 32 82 36 82 40 C82 44 78 48 74 48 Z"/>
+              <path d="M30 60 Q10 80 25 100 Q40 85 35 68 Z" fill="currentColor" opacity="0.4"/>
+              <path d="M90 60 Q110 80 95 100 Q80 85 85 68 Z" fill="currentColor" opacity="0.4"/>
+            </svg>
+            <span id="reader-tagline" class="text-[11px] font-mono text-slate-300 mt-2 bg-scary-bg/80 px-2.5 py-1 rounded-full border border-scary-border">Arroyo Seco Gorge, Pasadena CA</span>
+          </div>
+        </div>
+
+        <!-- Scrollable Story Content -->
+        <div id="reader-content" class="text-xs text-slate-300 leading-relaxed space-y-3 font-normal max-h-64 overflow-y-auto pr-1">
+          <!-- Text inserted via JS -->
+        </div>
+
+        <!-- Choice Navigation Buttons (Matches the two action buttons in 3rd mockup: e.g. Turn back vs Descend) -->
+        <div class="mt-5 pt-3 border-t border-scary-border grid grid-cols-2 gap-2.5">
+          <button id="choice-btn-1" onclick="handleStoryChoice(1)" class="w-full py-3 px-3 rounded-2xl bg-scary-surface hover:bg-scary-card border border-scary-border text-slate-200 text-xs font-bold font-mono tracking-tight text-center active:scale-95 transition">
+            Turn back to span
+          </button>
+          <button id="choice-btn-2" onclick="handleStoryChoice(2)" class="w-full py-3 px-3 rounded-2xl bg-scary-accent hover:bg-scary-accentHover text-slate-950 text-xs font-bold font-mono tracking-tight text-center active:scale-95 transition shadow-lg">
+            Descend into Arroyo
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- SCREEN 3: AUDIO PLAYER & EVP GHOST RADIO       -->
+    <!-- Matches Screenshot 2 (Center Mockup)           -->
+    <!-- ============================================== -->
+    <div id="screen-player" class="screen-view hidden space-y-4">
+      
+      <div class="bg-scary-card border border-scary-border rounded-3xl p-5 shadow-2xl relative overflow-hidden flex flex-col items-center">
+        
+        <!-- Player Header -->
+        <div class="w-full flex items-center justify-between mb-4 pb-2 border-b border-scary-border/60">
+          <div class="flex items-center gap-2">
+            <span class="text-xs">👻</span>
+            <span class="text-xs font-mono lowercase text-slate-300">now playing eerie audio</span>
+          </div>
+          <button onclick="togglePlayerBookmark()" class="text-slate-400 hover:text-scary-accent">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Large Cover Art (Macabre / Atmospheric Bridge Artwork) -->
+        <div class="w-full aspect-[4/5] max-h-72 rounded-2xl overflow-hidden relative shadow-inner border border-scary-border group">
+          <img id="player-cover-image" src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80" alt="Ghost Stories Cover" class="w-full h-full object-cover filter contrast-125 saturate-50 group-hover:scale-105 transition duration-700" onerror="this.src='https://placehold.co/600x700/181b20/ff6b4a?text=Spooky+Pasadena'"/>
+          
+          <div class="absolute inset-0 bg-gradient-to-t from-scary-bg via-transparent to-black/30"></div>
+
+          <!-- Overlay Ghostly Tags -->
+          <div class="absolute top-3 left-3 bg-scary-bg/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-scary-border text-[10px] font-mono text-scary-accent">
+            PASADENA • 1913 SPAN
+          </div>
+
+          <div class="absolute bottom-3 left-3 right-3 text-left">
+            <h3 id="player-story-title" class="text-base font-bold text-white drop-shadow">the weeping under the arches</h3>
+            <p id="player-story-subtitle" class="text-xs text-scary-textMuted font-mono">Arroyo Seco Canyon • EVP Session</p>
+          </div>
+        </div>
+
+        <!-- Audio Waveform / Scrubber Bar -->
+        <div class="w-full mt-5 space-y-1.5">
+          <div class="relative w-full bg-slate-800 rounded-full h-2 cursor-pointer" id="scrubber-bar" onclick="seekAudio(event)">
+            <div id="scrubber-progress" class="bg-scary-accent h-2 rounded-full relative transition-all" style="width: 32%">
+              <span class="absolute -right-1.5 -top-1 w-4 h-4 rounded-full bg-white shadow-md border-2 border-scary-accent"></span>
+            </div>
+          </div>
+          
+          <!-- Timestamp Row (e.g. 3:12 | 10:27 as shown in screenshot) -->
+          <div class="flex items-center justify-between text-[11px] font-mono text-scary-textMuted pt-0.5">
+            <span id="player-time-current">03:12</span>
+            <div class="flex items-center gap-1">
+              <span class="text-xs">💀</span>
+              <span class="text-xs">😱</span>
+            </div>
+            <span id="player-time-total">08:45</span>
+          </div>
+        </div>
+
+        <!-- Audio Player Controls Row (Prev, Play/Pause, Next, Shuffle, Loop) -->
+        <div class="flex items-center justify-between w-full max-w-xs mt-4 px-2">
+          <!-- Shuffle button -->
+          <button onclick="toggleAudioShuffle()" class="text-slate-400 hover:text-white transition active:scale-90">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H4a2 2 0 01-2-2V6a2 2 0 012-2h4m8 0h4a2 2 0 012 2v8a2 2 0 01-2 2h-4m-6 4l6-6-6-6"/>
+            </svg>
+          </button>
+
+          <!-- Prev button -->
+          <button onclick="prevStoryAudio()" class="text-slate-200 hover:text-white transition active:scale-90">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+            </svg>
+          </button>
+
+          <!-- Main Play/Pause Button -->
+          <button id="btn-player-play" onclick="toggleStoryPlayback()" class="w-14 h-14 rounded-2xl bg-scary-accent hover:bg-scary-accentHover text-slate-950 flex items-center justify-center shadow-xl active:scale-95 transition">
+            <svg id="player-play-icon" class="w-7 h-7 fill-current ml-0.5" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
+
+          <!-- Next button -->
+          <button onclick="nextStoryAudio()" class="text-slate-200 hover:text-white transition active:scale-90">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+            </svg>
+          </button>
+
+          <!-- Scream / Jumpscare audio FX button -->
+          <button onclick="playGhostPulseSound()" title="Paranormal sound pulse" class="text-2xl active:scale-90 transition">
+            😱
+          </button>
+        </div>
+
+        <!-- Ghost Radio / Ambient Generator Switch -->
+        <div class="w-full mt-5 pt-3 border-t border-scary-border flex items-center justify-between text-xs">
+          <span class="text-slate-400 font-mono">Synthesizer Ghost Ambience</span>
+          <button onclick="toggleAmbientSound()" id="player-ambience-btn" class="px-3 py-1 rounded-xl bg-scary-surface border border-scary-border text-scary-accent font-mono font-bold text-[11px]">
+            OFF
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- SCREEN 4: GHOST HUNT TOOLS (EMF & EVP LAB)    -->
+    <!-- Integrates into the Scary Stories Motif        -->
+    <!-- ============================================== -->
+    <div id="screen-tools" class="screen-view hidden space-y-4">
+      
+      <!-- K-II EMF Detector -->
+      <div class="bg-scary-card border border-scary-border rounded-3xl p-5 shadow-2xl relative overflow-hidden">
+        <div class="flex items-center justify-between mb-3 border-b border-scary-border pb-2">
+          <div>
+            <p class="text-[10px] font-mono text-scary-accent uppercase">Field Sensor</p>
+            <h3 class="text-sm font-bold text-white uppercase">K-II Tri-Axis EMF Meter</h3>
+          </div>
+          <div class="text-right font-mono">
+            <span id="emf-numeric" class="text-2xl font-black text-scary-accent">1.2</span>
+            <span class="text-[10px] text-scary-textMuted ml-0.5">mG</span>
+          </div>
+        </div>
+
+        <!-- 5-LED K-II Style Bar Display -->
+        <div class="grid grid-cols-5 gap-1.5 my-3">
+          <div class="flex flex-col items-center gap-1">
+            <div id="led-1" class="w-full h-3.5 rounded-md bg-emerald-500 shadow-[0_0_8px_#10b981] transition-all"></div>
+            <span class="text-[8px] font-mono text-slate-400">0-1.5</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div id="led-2" class="w-full h-3.5 rounded-md bg-emerald-950/40 border border-emerald-900/60 transition-all"></div>
+            <span class="text-[8px] font-mono text-slate-400">1.5-2.5</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div id="led-3" class="w-full h-3.5 rounded-md bg-amber-950/40 border border-amber-900/60 transition-all"></div>
+            <span class="text-[8px] font-mono text-slate-400">2.5-10</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div id="led-4" class="w-full h-3.5 rounded-md bg-orange-950/40 border border-orange-900/60 transition-all"></div>
+            <span class="text-[8px] font-mono text-slate-400">10-20</span>
+          </div>
+          <div class="flex flex-col items-center gap-1">
+            <div id="led-5" class="w-full h-3.5 rounded-md bg-rose-950/40 border border-rose-900/60 transition-all"></div>
+            <span class="text-[8px] font-mono text-slate-400">20+</span>
+          </div>
+        </div>
+
+        <!-- Analog Dial Meter Canvas -->
+        <div class="w-full max-w-[260px] aspect-[2/1] mx-auto relative my-1">
+          <canvas id="emf-dial-canvas" width="260" height="130" class="w-full h-full"></canvas>
+        </div>
+
+        <!-- Controls -->
+        <div class="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-scary-border">
+          <button onclick="triggerSimulatedSpike()" class="w-full py-2.5 px-3 rounded-2xl bg-scary-accent hover:bg-scary-accentHover text-slate-950 font-mono text-xs font-bold tracking-wider active:scale-95 transition flex items-center justify-center gap-1">
+            <span>⚡ FORCE SPIKE</span>
+          </button>
+          <button onclick="logQuickAnomaly('EMF Surge', 'Meter spiked over baseline')" class="w-full py-2.5 px-3 rounded-2xl bg-scary-surface hover:bg-scary-border text-slate-200 border border-scary-border font-mono text-xs font-bold active:scale-95 transition">
+            📝 LOG SPIKE
+          </button>
+        </div>
+      </div>
+
+      <!-- EVP Audio Lab -->
+      <div class="bg-scary-card border border-scary-border rounded-3xl p-5 shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-scary-border pb-2">
+          <div>
+            <p class="text-[10px] font-mono text-scary-accent uppercase">Acoustic Lab</p>
+            <h3 class="text-sm font-bold text-white uppercase">EVP Voice Recorder</h3>
+          </div>
+          <span id="rec-timer" class="text-xs font-mono text-slate-400">00:00</span>
+        </div>
+
+        <!-- Oscilloscope Waveform Canvas -->
+        <div class="w-full bg-scary-bg rounded-2xl border border-scary-border p-2 relative overflow-hidden">
+          <canvas id="audio-visualizer-canvas" width="400" height="100" class="w-full h-24 block"></canvas>
+          <span id="mic-status-tag" class="absolute bottom-2 right-3 text-[9px] font-mono text-scary-textMuted">MIC: READY</span>
+        </div>
+
+        <button id="btn-record-toggle" onclick="toggleRecording()" class="w-full py-3 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold font-mono text-xs shadow-lg active:scale-95 transition flex items-center justify-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-white animate-pulse" id="btn-record-circle"></span>
+          <span id="btn-record-text">START EVP RECORDING</span>
+        </button>
+      </div>
+
+      <!-- Quick Anomaly Field Journal -->
+      <div class="bg-scary-card border border-scary-border rounded-3xl p-5 shadow-2xl space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-mono font-bold text-slate-200 uppercase">Field Log with Oliver</h3>
+          <button onclick="exportLogsToClipboard()" class="text-xs font-mono text-scary-accent hover:underline">Copy All</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+          <button onclick="logQuickAnomaly('Cold Spot', '12° drop felt near arches')" class="p-2.5 rounded-xl bg-scary-surface border border-scary-border hover:border-scary-accent text-cyan-300 text-left active:scale-95 transition">
+            ❄️ Cold Spot (-10°)
+          </button>
+          <button onclick="logQuickAnomaly('Whisper', 'Faint sobbing beneath pillar')" class="p-2.5 rounded-xl bg-scary-surface border border-scary-border hover:border-scary-accent text-amber-300 text-left active:scale-95 transition">
+            👂 Phantom Audio
+          </button>
+          <button onclick="logQuickAnomaly('Shadow', 'Dark silhouette near railing')" class="p-2.5 rounded-xl bg-scary-surface border border-scary-border hover:border-scary-accent text-rose-300 text-left active:scale-95 transition">
+            👤 Shadow Figure
+          </button>
+          <button onclick="logQuickAnomaly('Lamp Flicker', 'Light turned off as we walked')" class="p-2.5 rounded-xl bg-scary-surface border border-scary-border hover:border-scary-accent text-yellow-300 text-left active:scale-95 transition">
+            💡 Lamp Glitch
+          </button>
+        </div>
+
+        <div id="log-entries-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 pt-1">
+          <!-- Rendered in JS -->
+        </div>
+      </div>
+
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- SCREEN 5: ITINERARY & PASADENA FIELD MAP      -->
+    <!-- ============================================== -->
+    <div id="screen-itinerary" class="screen-view hidden space-y-4">
+      
+      <div class="bg-scary-card border border-scary-border rounded-3xl p-5 shadow-2xl">
+        <p class="text-[10px] font-mono text-scary-accent uppercase">Field Expedition</p>
+        <h2 class="text-base font-black text-white">Pasadena Suicide Bridge Route</h2>
+        <p class="text-xs text-scary-textMuted mt-1 leading-relaxed">
+          The chronological ghost hunt path spanning the Arroyo Seco canyon, the 1913 suicide span, and late-night debrief spots with Oliver.
+        </p>
+      </div>
+
+      <!-- Route Cards -->
+      <div class="space-y-3" id="itinerary-stops-container">
+        <!-- Rendered in JS -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation Tab Bar (Matches Mobile Aesthetic) -->
+  <nav class="fixed bottom-0 inset-x-0 z-50 bg-[#15171c]/95 backdrop-blur-md border-t border-scary-border py-2 px-3">
+    <div class="max-w-md mx-auto grid grid-cols-5 gap-1">
+      
+      <!-- Tab 1: Stories -->
+      <button onclick="showScreen('stories')" id="tab-btn-stories" class="tab-button flex flex-col items-center justify-center py-1.5 rounded-2xl text-scary-accent bg-scary-card/80 transition">
+        <span class="text-lg">📖</span>
+        <span class="text-[9px] font-mono font-bold mt-0.5">STORIES</span>
+      </button>
+
+      <!-- Tab 2: Reader -->
+      <button onclick="showScreen('reader')" id="tab-btn-reader" class="tab-button flex flex-col items-center justify-center py-1.5 rounded-2xl text-scary-textMuted hover:text-white transition">
+        <span class="text-lg">🕯️</span>
+        <span class="text-[9px] font-mono font-bold mt-0.5">READ</span>
+      </button>
+
+      <!-- Tab 3: Player -->
+      <button onclick="showScreen('player')" id="tab-btn-player" class="tab-button flex flex-col items-center justify-center py-1.5 rounded-2xl text-scary-textMuted hover:text-white transition">
+        <span class="text-lg">🎧</span>
+        <span class="text-[9px] font-mono font-bold mt-0.5">LISTEN</span>
+      </button>
+
+      <!-- Tab 4: Ghost Tools -->
+      <button onclick="showScreen('tools')" id="tab-btn-tools" class="tab-button flex flex-col items-center justify-center py-1.5 rounded-2xl text-scary-textMuted hover:text-white transition">
+        <span class="text-lg">⚡</span>
+        <span class="text-[9px] font-mono font-bold mt-0.5">METER</span>
+      </button>
+
+      <!-- Tab 5: Route -->
+      <button onclick="showScreen('itinerary')" id="tab-btn-itinerary" class="tab-button flex flex-col items-center justify-center py-1.5 rounded-2xl text-scary-textMuted hover:text-white transition">
+        <span class="text-lg">🗺️</span>
+        <span class="text-[9px] font-mono font-bold mt-0.5">ROUTE</span>
+      </button>
+
+    </div>
+  </nav>
+
+  <!-- ============================================== -->
+  <!-- JAVASCRIPT LOGIC                               -->
+  <!-- ============================================== -->
+  <script>
+    // -------------------------------------------------------------
+    // DATA: SCARY STORIES & LORE DATABASE
+    // -------------------------------------------------------------
+    const SCARY_STORIES = [
+      {
+        id: 'baby-miracle',
+        category: 'bridge',
+        title: 'the infant in the trees',
+        subtitle: 'The Tragic Descent of Myrtle Ward (1937)',
+        readTime: '5 min',
+        listenTime: '8:45',
+        icon: '👶',
+        tag: 'May 1, 1937',
+        coverImg: 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?auto=format&fit=crop&w=800&q=80',
+        synopsis: 'Desperation at the height of the Great Depression, a leap into the dark void, and a supernatural branch that refused to break.',
+        fullStory: [
+          'On the cool, overcast morning of May 1, 1937, 22-year-old Myrtle Ward walked along the balustrade of the Colorado Street Bridge holding her 3-year-old daughter, Jean Pykkonen. Her husband was out of work, and poverty had pushed her past endurance.',
+          'Before onlookers could scream or intervene, Myrtle threw little Jean over the rail into the 150-foot abyss—and then immediately plunged off the bridge after her.',
+          'Myrtle died instantly upon impacting the canyon rocks. But when investigators and horrified rescue workers picked their way through the brambles below, they found something unexplainable: Jean was suspended 40 feet in the air, caught safely in the thick branches of an old sycamore tree, crying with barely a scratch.',
+          'Ever since, night visitors walking the lower arches claim to hear phantom sobs echoing through the canopy—interspersed with a gentle, disembodied humming song believed to be Myrtle searching for the child she dropped into the darkness.'
+        ],
+        branchChoice1: 'Turn back to span sidewalk',
+        branchChoice2: 'Search the sycamore grove'
+      },
+      {
+        id: 'wet-concrete',
+        category: 'bridge',
+        title: 'entombed in pier three',
+        subtitle: 'The 1919 Construction Curse',
+        readTime: '4 min',
+        listenTime: '6:20',
+        icon: '🔨',
+        tag: 'October 1919',
+        coverImg: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80',
+        synopsis: 'A wet cement pour during the bridge’s massive construction supposedly sealed a doomed worker forever inside the monolithic concrete arches.',
+        fullStory: [
+          'During the bridge’s construction in 1913 and early renovations, massive wooden forms were filled around the clock with quick-curing concrete to anchor the arched spans over the Arroyo Seco.',
+          'Local legend insists a tired carpenter lost his footing on scaffolding and plunged directly into the wet slurry of Pier 3. The foreman, under brutal time constraints, reportedly refused to halt the machinery to recover him, claiming the set would be ruined.',
+          'While Pasadena city historians dispute the record, ghost hunters and acoustic teams have continuously recorded rhythmic, metallic tapping noises emanating from deep inside the monolithic pillar—like a hammer trying to chip its way through six feet of solid stone.'
+        ],
+        branchChoice1: 'Listen at Pier Three',
+        branchChoice2: 'Flee back toward bridge road'
+      },
+      {
+        id: 'tunnel-lights',
+        category: 'spirits',
+        title: 'the lights out tunnel',
+        subtitle: 'The Arroyo Storm Drain Encounter',
+        readTime: '3 min',
+        listenTime: '4:50',
+        icon: '🔦',
+        tag: 'Local Legend',
+        coverImg: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=800&q=80',
+        synopsis: 'Six overhead lights illuminated the tunnel path beneath the bridge. As investigators walked, each bulb sequentially extinguished behind them.',
+        fullStory: [
+          'Beneath the colossal roadway of the Colorado Street Bridge lies a pedestrian tunnel cutting through the Arroyo ridge. It was built with six overhead industrial lamps designed to illuminate the dark underpass.',
+          'Paranormal author and investigator Richard Carradine recounts walking through this tunnel at dead of night with a companion. As they stepped beneath the first lamp, it sputtered and went out. As they reached the second, it too clicked off.',
+          'One by one, in perfect synchronization with their footsteps, every light extinguished behind them—leaving only pitch darkness swallowing the corridor until they broke out into the moonlit canyon.'
+        ],
+        branchChoice1: 'Run to tunnel entrance',
+        branchChoice2: 'Turn on red torch beam'
+      },
+      {
+        id: 'phantom-pedestrian',
+        category: 'appearance',
+        title: 'the phantom pedestrian',
+        subtitle: 'The Mist Woman of Orange Grove',
+        readTime: '3 min',
+        listenTime: '5:15',
+        icon: '👤',
+        tag: 'Automobile Sighting',
+        coverImg: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=800&q=80',
+        synopsis: 'Late-night drivers crossing towards Old Town Pasadena repeatedly report slamming on their brakes for a woman in white who dissolves on impact.',
+        fullStory: [
+          'On foggy winter evenings when mist rises from the Arroyo Seco, Pasadena police dispatchers regularly receive frantic 911 calls from motorists crossing the Colorado Street Bridge.',
+          'Drivers report a woman in early-20th-century white evening dress stepping directly into the path of their headlights. In a panic, drivers swerve or slam on their brakes, bracing for impact.',
+          'Yet when they step out of their cars in the eerie chill, there is no dent, no skid mark, and no body on the road. Only the faint scent of old gardenia perfume lingering on the breeze.'
+        ],
+        branchChoice1: 'Step onto the sidewalk',
+        branchChoice2: 'Stay inside vehicle'
+      },
+      {
+        id: 'vanishing-jumper',
+        category: 'appearance',
+        title: 'the vanishing jumper',
+        subtitle: 'Looping Specter of the Great Depression',
+        readTime: '4 min',
+        listenTime: '7:10',
+        icon: '⚡',
+        tag: 'Residual Haunting',
+        coverImg: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=800&q=80',
+        synopsis: 'A residual apparition of a gentleman in a vintage wool overcoat seen vaulting the balustrade, disappearing mid-air before impact.',
+        fullStory: [
+          'During the 1930s, more than 50 people leapt from the newly minted Colorado Street Bridge, giving it the grim moniker "Suicide Bridge".',
+          'One of the most frequently observed residual entities is a man dressed in a 1930s tweed suit and fedora. Witnesses on the canyon floor report seeing him stand balanced precariously on the concrete ledge, look down, and throw himself into the empty air.',
+          'However, as he falls past the 50-foot mark, his body simply fades into vapor before ever reaching the ground—trapped in a perpetual, silent loop of his final despairing second.'
+        ],
+        branchChoice1: 'Peer over the curved railing',
+        branchChoice2: 'Hurry toward Defenders Park'
+      }
+    ];
+
+    const ITINERARY_DATA = [
+      {
+        id: 'stop-1',
+        title: 'Lower Arroyo Seco (Under the Arches)',
+        time: '7:00 PM – 7:45 PM (Dusk)',
+        tag: 'DUSK RECON',
+        mapsQuery: 'Lower+Arroyo+Park+Pasadena',
+        warning: 'Gated trails close strictly around dusk. Bring red flashlights and beware of uneven river stones.',
+        summary: 'Look directly upward at the 150-ft monolithic concrete pillars while twilight turns to total night.',
+        evidence: 'Reported 12°F sudden cold spots and rhythmic hammer taps near Pier 3.'
+      },
+      {
+        id: 'stop-2',
+        title: 'Defenders Park & Staging Area',
+        time: '7:45 PM – 8:30 PM',
+        tag: 'EQUIPMENT CALIBRATION',
+        mapsQuery: 'Defenders+Park+Pasadena',
+        warning: 'Residential neighborhood near Orange Grove Blvd. Keep group quiet and respectful of private homes.',
+        summary: 'Calibrate your K-II EMF meter baseline reading away from power lines before crossing the bridge.',
+        evidence: 'Flickering streetlamps that shut off when electromagnetic fields spike.'
+      },
+      {
+        id: 'stop-3',
+        title: 'Colorado Street Bridge Pedestrian Span',
+        time: '8:30 PM – 9:30 PM (Night)',
+        tag: 'PRIMARY HUNT',
+        mapsQuery: 'Colorado+Street+Bridge+Pasadena',
+        warning: 'Walk on designated sidewalks only. Stay safely behind the tall curved preservation fencing.',
+        summary: 'The iconic 1913 Beaux-Arts span. Over 100 people ended their lives here during the Great Depression.',
+        evidence: 'Phantom pedestrian stepping into headlights, vanishing jumpers, and faint crying in the winds.'
+      },
+      {
+        id: 'stop-4',
+        title: 'Castle Green (Old Pasadena Exterior)',
+        time: '9:45 PM – 10:30 PM',
+        tag: 'HISTORIC RESIDUAL',
+        mapsQuery: 'Castle+Green+Pasadena',
+        warning: 'Private historical property. Sidewalk perimeter viewing only—do not trespass on grounds.',
+        summary: '1898 Moorish-style resort hotel once host to Gilded Age celebrities. Ghostly ballroom waltzes reported.',
+        evidence: 'Faint string quartet melodies heard through the brick veranda at midnight.'
+      },
+      {
+        id: 'stop-5',
+        title: 'Late Night De-brief (Dog Haus / IHOP)',
+        time: '10:30 PM – Midnight+',
+        tag: 'DATA REVIEW',
+        mapsQuery: 'Dog+Haus+Old+Pasadena',
+        warning: 'Dog Haus (Green St) open until 12/1:30 AM; 24/7 IHOP on Arroyo Parkway.',
+        summary: 'Grab a booth with Oliver to review recorded EVP voice files, compare notes, and warm up with hot coffee.',
+        evidence: 'Cross-reference audio anomalies with logged EMF surges.'
+      }
+    ];
+
+    // -------------------------------------------------------------
+    // STATE
+    // -------------------------------------------------------------
+    let activeStoryId = 'baby-miracle';
+    let currentFilter = 'all';
+    let currentMode = 'listen'; // 'listen' or 'read'
+    let bookmarks = new Set(['baby-miracle']);
+    let isNightVision = false;
+
+    // Web Audio Synthesizer State
+    let audioCtx = null;
+    let ambientDroneNodes = null;
+    let isAmbientPlaying = false;
+    let isStoryAudioPlaying = false;
+    let audioPlayInterval = null;
+    let audioCurrentSeconds = 192; // 3:12
+    let audioTotalSeconds = 525;   // 8:45
+
+    // EMF State
+    let currentEmf = 1.2;
+    let targetEmf = 1.2;
+    let peakEmf = 1.8;
+    let emfDialCanvas, emfCtx;
+
+    // EVP & Field Logs
+    let isRecording = false;
+    let recTimerInterval = null;
+    let recSeconds = 0;
+    let fieldLogs = [];
+
+    // -------------------------------------------------------------
+    // WEB AUDIO API ATMOSPHERIC SYNTHESIZER
+    // Generates creepy ghost wind, sub-bass drone, and static
+    // -------------------------------------------------------------
+    function initAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+        }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleAmbientSound() {
+      initAudioContext();
+      if (!audioCtx) return;
+
+      if (isAmbientPlaying) {
+        stopAmbientSound();
+        showToast('Ambient ghost drone deactivated');
+      } else {
+        startAmbientSound();
+        showToast('Atmospheric drone & wind active');
+      }
+    }
+
+    function startAmbientSound() {
+      if (!audioCtx) return;
+      isAmbientPlaying = true;
+
+      // 1. Sub Bass Drone Oscillator (55Hz creepy low hum)
+      const subOsc = audioCtx.createOscillator();
+      subOsc.type = 'sawtooth';
+      subOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+
+      const subFilter = audioCtx.createBiquadFilter();
+      subFilter.type = 'lowpass';
+      subFilter.frequency.setValueAtTime(120, audioCtx.currentTime);
+
+      const subGain = audioCtx.createGain();
+      subGain.gain.setValueAtTime(0.06, audioCtx.currentTime);
+
+      subOsc.connect(subFilter);
+      subFilter.connect(subGain);
+      subGain.connect(audioCtx.destination);
+      subOsc.start();
+
+      // 2. Wind / Static Noise Generator
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.2;
+      }
+
+      const whiteNoise = audioCtx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+      whiteNoise.loop = true;
+
+      const windFilter = audioCtx.createBiquadFilter();
+      windFilter.type = 'bandpass';
+      windFilter.frequency.setValueAtTime(450, audioCtx.currentTime);
+      windFilter.Q.setValueAtTime(3.0, audioCtx.currentTime);
+
+      const windGain = audioCtx.createGain();
+      windGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+      whiteNoise.connect(windFilter);
+      windFilter.connect(windGain);
+      windGain.connect(audioCtx.destination);
+      whiteNoise.start();
+
+      ambientDroneNodes = { subOsc, subGain, whiteNoise, windGain };
+
+      // Update UI elements
+      document.getElementById('ambient-icon').innerText = '🔊';
+      document.getElementById('btn-ambient-sound').classList.add('border-scary-accent', 'text-scary-accent');
+      const playerAmbBtn = document.getElementById('player-ambience-btn');
+      if (playerAmbBtn) {
+        playerAmbBtn.innerText = 'ON';
+        playerAmbBtn.classList.add('bg-scary-accent', 'text-slate-950');
+      }
+    }
+
+    function stopAmbientSound() {
+      if (ambientDroneNodes) {
+        try {
+          ambientDroneNodes.subOsc.stop();
+          ambientDroneNodes.whiteNoise.stop();
+        } catch (e) {}
+        ambientDroneNodes = null;
+      }
+      isAmbientPlaying = false;
+
+      document.getElementById('ambient-icon').innerText = '🎵';
+      document.getElementById('btn-ambient-sound').classList.remove('border-scary-accent', 'text-scary-accent');
+      const playerAmbBtn = document.getElementById('player-ambience-btn');
+      if (playerAmbBtn) {
+        playerAmbBtn.innerText = 'OFF';
+        playerAmbBtn.classList.remove('bg-scary-accent', 'text-slate-950');
+      }
+    }
+
+    function playGhostPulseSound() {
+      initAudioContext();
+      if (!audioCtx) return;
+      showToast('Ghostly audio spike triggered!', '😱');
+
+      // Sudden scary pitch descent
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(70, audioCtx.currentTime + 1.2);
+
+      gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 1.2);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 1.2);
+    }
+
+    // -------------------------------------------------------------
+    // AUDIO PLAYER LOGIC
+    // -------------------------------------------------------------
+    function toggleStoryPlayback() {
+      initAudioContext();
+      isStoryAudioPlaying = !isStoryAudioPlaying;
+      const playIcon = document.getElementById('player-play-icon');
+
+      if (isStoryAudioPlaying) {
+        // Switch to pause icon
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        if (!isAmbientPlaying) startAmbientSound();
+
+        audioPlayInterval = setInterval(() => {
+          if (audioCurrentSeconds < audioTotalSeconds) {
+            audioCurrentSeconds++;
+            updateScrubberUi();
+          } else {
+            audioCurrentSeconds = 0;
+            toggleStoryPlayback();
+          }
+        }, 1000);
+        showToast('Playing atmospheric narration');
+      } else {
+        // Switch to play icon
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        clearInterval(audioPlayInterval);
+        showToast('Narration paused');
+      }
+    }
+
+    function updateScrubberUi() {
+      const pct = (audioCurrentSeconds / audioTotalSeconds) * 100;
+      document.getElementById('scrubber-progress').style.width = `${pct}%`;
+      document.getElementById('player-time-current').innerText = formatTime(audioCurrentSeconds);
+      document.getElementById('player-time-total').innerText = formatTime(audioTotalSeconds);
+    }
+
+    function seekAudio(e) {
+      const bar = document.getElementById('scrubber-bar');
+      const rect = bar.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      audioCurrentSeconds = Math.floor(pct * audioTotalSeconds);
+      updateScrubberUi();
+    }
+
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60);
+      const s = Math.floor(secs % 60);
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function nextStoryAudio() {
+      const idx = SCARY_STORIES.findIndex(s => s.id === activeStoryId);
+      const nextIdx = (idx + 1) % SCARY_STORIES.length;
+      loadStoryIntoPlayer(SCARY_STORIES[nextIdx].id);
+    }
+
+    function prevStoryAudio() {
+      const idx = SCARY_STORIES.findIndex(s => s.id === activeStoryId);
+      const prevIdx = (idx - 1 + SCARY_STORIES.length) % SCARY_STORIES.length;
+      loadStoryIntoPlayer(SCARY_STORIES[prevIdx].id);
+    }
+
+    function toggleAudioShuffle() {
+      const randIdx = Math.floor(Math.random() * SCARY_STORIES.length);
+      loadStoryIntoPlayer(SCARY_STORIES[randIdx].id);
+      showToast('Shuffled to random Pasadena legend');
+    }
+
+    function loadStoryIntoPlayer(storyId) {
+      activeStoryId = storyId;
+      const story = SCARY_STORIES.find(s => s.id === storyId);
+      if (!story) return;
+
+      document.getElementById('player-story-title').innerText = story.title;
+      document.getElementById('player-story-subtitle').innerText = story.subtitle;
+      document.getElementById('player-cover-image').src = story.coverImg;
+
+      audioCurrentSeconds = 0;
+      audioTotalSeconds = parseTimeToSecs(story.listenTime);
+      updateScrubberUi();
+    }
+
+    function parseTimeToSecs(timeStr) {
+      const [m, s] = timeStr.split(':').map(Number);
+      return (m * 60) + s;
+    }
+
+    // -------------------------------------------------------------
+    // STORY READER & INTERACTIVE ADVENTURE
+    // -------------------------------------------------------------
+    function openStory(storyId) {
+      activeStoryId = storyId;
+      const story = SCARY_STORIES.find(s => s.id === storyId);
+      if (!story) return;
+
+      document.getElementById('reader-title').innerText = story.title;
+      document.getElementById('reader-meta').innerText = `${story.tag} • ${story.readTime} read`;
+      document.getElementById('reader-icon').innerText = story.icon;
+      document.getElementById('reader-image').src = story.coverImg;
+      document.getElementById('reader-tagline').innerText = story.subtitle;
+
+      // Render paragraph blocks
+      const contentEl = document.getElementById('reader-content');
+      contentEl.innerHTML = story.fullStory.map(p => `<p>${p}</p>`).join('');
+
+      // Choices
+      document.getElementById('choice-btn-1').innerText = story.branchChoice1;
+      document.getElementById('choice-btn-2').innerText = story.branchChoice2;
+
+      // Update bookmark indicator
+      updateReaderBookmarkIcon();
+
+      // Show Reader Screen
+      showScreen('reader');
+    }
+
+    function handleStoryChoice(choiceNum) {
+      const story = SCARY_STORIES.find(s => s.id === activeStoryId);
+      if (!story) return;
+
+      if (choiceNum === 1) {
+        showToast(`You chose: "${story.branchChoice1}". Safe baseline maintained.`);
+        logQuickAnomaly('Investigation Choice', `Turned back from danger: ${story.branchChoice1}`);
+      } else {
+        showToast(`You chose: "${story.branchChoice2}". Chilling energy detected!`, '⚡');
+        triggerSimulatedSpike();
+        logQuickAnomaly('Ghost Encounter', `Ventured deeper: ${story.branchChoice2}`);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // RENDER: STORIES & PLAYLIST (Matches Screenshot 1)
+    // -------------------------------------------------------------
+    function renderStoriesPlaylist() {
+      const container = document.getElementById('stories-playlist');
+      if (!container) return;
+
+      const filtered = SCARY_STORIES.filter(s => {
+        if (currentFilter === 'all') return true;
+        if (currentFilter === 'bridge') return s.category === 'bridge';
+        if (currentFilter === 'spirits') return s.category === 'spirits';
+        if (currentFilter === 'appearance') return s.category === 'appearance';
+        if (currentFilter === 'canyon') return s.category === 'bridge' || s.category === 'spirits';
+        return true;
+      });
+
+      container.innerHTML = filtered.map(story => {
+        const isBookmarked = bookmarks.has(story.id);
+        return `
+          <div class="bg-scary-card hover:bg-scary-cardHover border border-scary-border rounded-2xl p-3.5 flex items-center justify-between transition-all group story-card-shadow">
+            <div class="flex items-center gap-3 cursor-pointer flex-1" onclick="${currentMode === 'listen' ? `playSpecificStory('${story.id}')` : `openStory('${story.id}')`}">
+              <!-- Etched Icon Badge -->
+              <div class="w-11 h-11 rounded-xl bg-scary-surface flex items-center justify-center text-xl border border-scary-border group-hover:border-scary-accent transition">
+                <span>${story.icon}</span>
+              </div>
+              <div>
+                <h4 class="text-sm font-bold text-slate-100 group-hover:text-scary-accent transition">${story.title}</h4>
+                <p class="text-[11px] text-scary-textMuted font-mono mt-0.5">
+                  ${currentMode === 'listen' ? `${story.listenTime} • Listening` : `${story.readTime} • Reading`}
+                </p>
+              </div>
+            </div>
+
+            <!-- Action button (Play icon for listen, arrow/book for read) -->
+            <div class="flex items-center gap-2">
+              <button onclick="toggleBookmark('${story.id}', event)" class="p-1.5 text-slate-500 hover:text-scary-accent transition">
+                <svg class="w-4 h-4 ${isBookmarked ? 'fill-scary-accent text-scary-accent' : ''}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                </svg>
+              </button>
+
+              <button onclick="${currentMode === 'listen' ? `playSpecificStory('${story.id}')` : `openStory('${story.id}')`}" class="w-8 h-8 rounded-full bg-scary-accent hover:bg-scary-accentHover text-slate-950 flex items-center justify-center transition active:scale-90">
+                ${currentMode === 'listen' ? `
+                  <svg class="w-3.5 h-3.5 fill-current ml-0.5" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                  </svg>
+                ` : `
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                  </svg>
+                `}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function playSpecificStory(storyId) {
+      loadStoryIntoPlayer(storyId);
+      showScreen('player');
+      if (!isStoryAudioPlaying) toggleStoryPlayback();
+    }
+
+    function filterStories(category) {
+      currentFilter = category;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-scary-accent', 'scale-105');
+      });
+      event.currentTarget.classList.add('ring-2', 'ring-scary-accent', 'scale-105');
+      renderStoriesPlaylist();
+    }
+
+    function toggleMode(mode) {
+      currentMode = mode;
+      const listenBtn = document.getElementById('mode-listen');
+      const readBtn = document.getElementById('mode-read');
+      const listenBar = document.getElementById('listen-bar');
+      const readBar = document.getElementById('read-bar');
+
+      if (mode === 'listen') {
+        listenBtn.className = 'text-sm font-bold text-white relative pb-1 transition';
+        readBtn.className = 'text-sm font-bold text-scary-textMuted relative pb-1 hover:text-white transition';
+        listenBar.className = 'absolute bottom-0 left-0 right-0 h-0.5 bg-scary-accent rounded-full';
+        readBar.className = 'absolute bottom-0 left-0 right-0 h-0.5 bg-transparent rounded-full';
+      } else {
+        readBtn.className = 'text-sm font-bold text-white relative pb-1 transition';
+        listenBtn.className = 'text-sm font-bold text-scary-textMuted relative pb-1 hover:text-white transition';
+        readBar.className = 'absolute bottom-0 left-0 right-0 h-0.5 bg-scary-accent rounded-full';
+        listenBar.className = 'absolute bottom-0 left-0 right-0 h-0.5 bg-transparent rounded-full';
+      }
+      renderStoriesPlaylist();
+    }
+
+    // -------------------------------------------------------------
+    // BOOKMARKING
+    // -------------------------------------------------------------
+    function toggleBookmark(storyId, e) {
+      if (e) e.stopPropagation();
+      if (bookmarks.has(storyId)) {
+        bookmarks.delete(storyId);
+        showToast('Story removed from bookmarks');
+      } else {
+        bookmarks.add(storyId);
+        showToast('Story saved to bookmarks');
+      }
+      renderStoriesPlaylist();
+      updateReaderBookmarkIcon();
+    }
+
+    function toggleActiveBookmark() {
+      toggleBookmark(activeStoryId, null);
+    }
+
+    function togglePlayerBookmark() {
+      toggleBookmark(activeStoryId, null);
+    }
+
+    function updateReaderBookmarkIcon() {
+      const btn = document.getElementById('reader-bookmark-btn');
+      if (btn) {
+        if (bookmarks.has(activeStoryId)) {
+          btn.innerHTML = `
+            <svg class="w-4 h-4 fill-scary-accent text-scary-accent" viewBox="0 0 24 24">
+              <path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+          `;
+        } else {
+          btn.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+          `;
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // EMF GAUGE & METERS
+    // -------------------------------------------------------------
+    function initEmfMeter() {
+      emfDialCanvas = document.getElementById('emf-dial-canvas');
+      if (emfDialCanvas) {
+        emfCtx = emfDialCanvas.getContext('2d');
+      }
+
+      setInterval(() => {
+        const jitter = 0.9 + Math.random() * 0.8;
+        if (Math.abs(targetEmf - currentEmf) < 0.2) {
+          targetEmf = jitter;
+        }
+      }, 1200);
+
+      function updateEmfLoop() {
+        currentEmf += (targetEmf - currentEmf) * 0.12;
+        if (currentEmf > peakEmf) {
+          peakEmf = currentEmf;
+        }
+
+        updateEmfUi(currentEmf);
+        drawEmfDial(currentEmf);
+        requestAnimationFrame(updateEmfLoop);
+      }
+      requestAnimationFrame(updateEmfLoop);
+    }
+
+    function updateEmfUi(val) {
+      document.getElementById('emf-numeric').innerText = val.toFixed(1);
+
+      const led1 = document.getElementById('led-1');
+      const led2 = document.getElementById('led-2');
+      const led3 = document.getElementById('led-3');
+      const led4 = document.getElementById('led-4');
+      const led5 = document.getElementById('led-5');
+
+      led1.className = 'w-full h-3.5 rounded-md bg-emerald-500 shadow-[0_0_8px_#10b981] transition-all';
+      led2.className = val >= 1.5 ? 'w-full h-3.5 rounded-md bg-emerald-400 shadow-[0_0_8px_#34d399] transition-all' : 'w-full h-3.5 rounded-md bg-emerald-950/40 border border-emerald-900/60 transition-all';
+      led3.className = val >= 2.5 ? 'w-full h-3.5 rounded-md bg-amber-400 shadow-[0_0_8px_#fbbf24] transition-all' : 'w-full h-3.5 rounded-md bg-amber-950/40 border border-amber-900/60 transition-all';
+      led4.className = val >= 10.0 ? 'w-full h-3.5 rounded-md bg-orange-500 shadow-[0_0_8px_#f97316] transition-all' : 'w-full h-3.5 rounded-md bg-orange-950/40 border border-orange-900/60 transition-all';
+      led5.className = val >= 20.0 ? 'w-full h-3.5 rounded-md bg-rose-600 shadow-[0_0_12px_#e11d48] animate-pulse transition-all' : 'w-full h-3.5 rounded-md bg-rose-950/40 border border-rose-900/60 transition-all';
+    }
+
+    function drawEmfDial(val) {
+      if (!emfCtx || !emfDialCanvas) return;
+      const w = emfDialCanvas.width;
+      const h = emfDialCanvas.height;
+      const cx = w / 2;
+      const cy = h - 6;
+      const radius = h - 18;
+
+      emfCtx.clearRect(0, 0, w, h);
+
+      // Arc
+      emfCtx.lineWidth = 8;
+      emfCtx.lineCap = 'round';
+
+      // Safe
+      emfCtx.beginPath();
+      emfCtx.strokeStyle = '#065f46';
+      emfCtx.arc(cx, cy, radius, Math.PI, Math.PI + (Math.PI * 0.4));
+      emfCtx.stroke();
+
+      // Caution
+      emfCtx.beginPath();
+      emfCtx.strokeStyle = '#b45309';
+      emfCtx.arc(cx, cy, radius, Math.PI + (Math.PI * 0.4), Math.PI + (Math.PI * 0.75));
+      emfCtx.stroke();
+
+      // Danger
+      emfCtx.beginPath();
+      emfCtx.strokeStyle = '#9f1239';
+      emfCtx.arc(cx, cy, radius, Math.PI + (Math.PI * 0.75), Math.PI * 2);
+      emfCtx.stroke();
+
+      // Needle
+      const clamped = Math.min(25, Math.max(0, val));
+      const angle = Math.PI + (clamped / 25) * Math.PI;
+
+      emfCtx.beginPath();
+      emfCtx.strokeStyle = val >= 18 ? '#f43f5e' : (val >= 8 ? '#f59e0b' : '#34d399');
+      emfCtx.lineWidth = 3;
+      emfCtx.moveTo(cx, cy);
+      emfCtx.lineTo(cx + Math.cos(angle) * (radius - 4), cy + Math.sin(angle) * (radius - 4));
+      emfCtx.stroke();
+
+      emfCtx.beginPath();
+      emfCtx.fillStyle = '#f8fafc';
+      emfCtx.arc(cx, cy, 5, 0, Math.PI * 2);
+      emfCtx.fill();
+    }
+
+    function triggerSimulatedSpike() {
+      initAudioContext();
+      targetEmf = 19.8 + Math.random() * 5.2;
+      playGhostPulseSound();
+      showToast('⚠️ MASSIVE EMF RADIATION SURGE!');
+      setTimeout(() => {
+        targetEmf = 1.2 + Math.random();
+      }, 3000);
+    }
+
+    // -------------------------------------------------------------
+    // EVP AUDIO RECORDING
+    // -------------------------------------------------------------
+    let visualizerCanvas, visualizerCtx;
+
+    function initAudioLab() {
+      visualizerCanvas = document.getElementById('audio-visualizer-canvas');
+      if (visualizerCanvas) {
+        visualizerCtx = visualizerCanvas.getContext('2d');
+        drawIdleWaveform();
+      }
+    }
+
+    function drawIdleWaveform() {
+      if (!visualizerCtx || !visualizerCanvas) return;
+      const w = visualizerCanvas.width;
+      const h = visualizerCanvas.height;
+      visualizerCtx.fillStyle = '#121417';
+      visualizerCtx.fillRect(0, 0, w, h);
+
+      visualizerCtx.lineWidth = 1.5;
+      visualizerCtx.strokeStyle = '#2f3540';
+      visualizerCtx.beginPath();
+      visualizerCtx.moveTo(0, h / 2);
+      visualizerCtx.lineTo(w, h / 2);
+      visualizerCtx.stroke();
+    }
+
+    function toggleRecording() {
+      initAudioContext();
+      isRecording = !isRecording;
+      const btnText = document.getElementById('btn-record-text');
+      const btnCircle = document.getElementById('btn-record-circle');
+
+      if (isRecording) {
+        recSeconds = 0;
+        btnText.innerText = 'STOP & ARCHIVE EVP';
+        btnCircle.className = 'w-3 h-3 rounded-full bg-rose-500 animate-ping';
+        showToast('Microphone active: scanning room audio for spectral EVPs');
+
+        recTimerInterval = setInterval(() => {
+          recSeconds++;
+          const m = String(Math.floor(recSeconds / 60)).padStart(2, '0');
+          const s = String(recSeconds % 60).padStart(2, '0');
+          document.getElementById('rec-timer').innerText = `${m}:${s}`;
+          drawSimulatedRecordingWaveform();
+        }, 100);
+      } else {
+        clearInterval(recTimerInterval);
+        btnText.innerText = 'START EVP RECORDING';
+        btnCircle.className = 'w-3 h-3 rounded-full bg-white animate-pulse';
+        drawIdleWaveform();
+        logQuickAnomaly('EVP Audio Capture', `Archived ${recSeconds}s audio recording at Colorado St Bridge`);
+        showToast('EVP audio snippet saved to field journal');
+      }
+    }
+
+    function drawSimulatedRecordingWaveform() {
+      if (!visualizerCtx || !visualizerCanvas) return;
+      const w = visualizerCanvas.width;
+      const h = visualizerCanvas.height;
+
+      visualizerCtx.fillStyle = 'rgba(18, 20, 23, 0.4)';
+      visualizerCtx.fillRect(0, 0, w, h);
+
+      visualizerCtx.lineWidth = 2;
+      visualizerCtx.strokeStyle = '#f7724f';
+      visualizerCtx.beginPath();
+      visualizerCtx.moveTo(0, h / 2);
+
+      for (let x = 0; x < w; x += 6) {
+        const amp = (Math.random() - 0.5) * (Math.sin(x / 8 + Date.now() / 80) * 35);
+        visualizerCtx.lineTo(x, (h / 2) + amp);
+      }
+      visualizerCtx.stroke();
+    }
+
+    // -------------------------------------------------------------
+    // FIELD LOGGING
+    // -------------------------------------------------------------
+    function logQuickAnomaly(type, notes) {
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      fieldLogs.unshift({
+        id: 'log_' + Date.now(),
+        type,
+        notes,
+        time: `${timeStr} PST`
+      });
+      renderFieldLogs();
+    }
+
+    function renderFieldLogs() {
+      const container = document.getElementById('log-entries-list');
+      if (!container) return;
+
+      if (fieldLogs.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-4 text-xs font-mono text-scary-textMuted">
+            No field anomalies recorded yet tonight.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = fieldLogs.map(l => `
+        <div class="bg-scary-surface border border-scary-border rounded-xl p-2.5 text-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-mono text-scary-accent font-bold">${l.type}</span>
+            <span class="font-mono text-[10px] text-scary-textMuted">${l.time}</span>
+          </div>
+          <p class="text-slate-300 text-[11px] mt-1">${l.notes}</p>
+        </div>
+      `).join('');
+    }
+
+    function exportLogsToClipboard() {
+      if (fieldLogs.length === 0) {
+        showToast('No logs to copy yet');
+        return;
+      }
+      let txt = '=== PASADENA GHOST HUNT LOG (WITH OLIVER) ===\n\n';
+      fieldLogs.forEach(l => {
+        txt += `[${l.time}] ${l.type}: ${l.notes}\n`;
+      });
+
+      const tempArea = document.createElement('textarea');
+      tempArea.value = txt;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Copied all logs to clipboard');
+      } catch (e) {
+        showToast('Unable to copy logs');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    // -------------------------------------------------------------
+    // ITINERARY RENDERING
+    // -------------------------------------------------------------
+    function renderItineraryStops() {
+      const container = document.getElementById('itinerary-stops-container');
+      if (!container) return;
+
+      container.innerHTML = ITINERARY_DATA.map((stop, i) => `
+        <div class="bg-scary-card border border-scary-border rounded-3xl p-4 shadow-xl space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-scary-surface border border-scary-border text-scary-accent">
+              STOP 0${i + 1} • ${stop.tag}
+            </span>
+            <span class="text-xs font-mono text-slate-300 font-semibold">${stop.time}</span>
+          </div>
+
+          <h3 class="text-sm font-bold text-white">${stop.title}</h3>
+          <p class="text-xs text-scary-textMuted">${stop.summary}</p>
+
+          <div class="p-2.5 rounded-2xl bg-scary-surface border border-scary-border text-[11px] space-y-1">
+            <div class="text-rose-400 font-bold flex items-center gap-1.5">
+              <span>⚠️</span>
+              <span>${stop.warning}</span>
+            </div>
+            <div class="text-slate-300">
+              <strong class="text-scary-accent">Reported Lore:</strong> ${stop.evidence}
+            </div>
+          </div>
+
+          <div class="pt-1 flex items-center gap-2">
+            <a href="https://www.google.com/maps/search/?api=1&query=${stop.mapsQuery}" target="_blank" rel="noopener noreferrer" class="flex-1 py-2 px-3 rounded-2xl bg-scary-surface hover:bg-scary-border border border-scary-border text-center text-xs font-mono font-bold text-scary-accent flex items-center justify-center gap-1.5">
+              <span>📍 Open Google Maps</span>
+            </a>
+            <button onclick="logQuickAnomaly('Stop Checked In', 'Arrived at ${stop.title}')" class="py-2 px-3 rounded-2xl bg-scary-accent text-slate-950 font-mono text-xs font-bold active:scale-95 transition">
+              Check In
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // -------------------------------------------------------------
+    // NAVIGATION & VIEW SWITCHING
+    // -------------------------------------------------------------
+    function showScreen(screenId) {
+      initAudioContext();
+
+      // Hide all screen views
+      document.querySelectorAll('.screen-view').forEach(el => el.classList.add('hidden'));
+
+      // Show selected screen
+      const target = document.getElementById(`screen-${screenId}`);
+      if (target) target.classList.remove('hidden');
+
+      // Update bottom nav buttons
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('text-scary-accent', 'bg-scary-card/80');
+        btn.classList.add('text-scary-textMuted');
+      });
+
+      const activeBtn = document.getElementById(`tab-btn-${screenId}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('text-scary-textMuted');
+        activeBtn.classList.add('text-scary-accent', 'bg-scary-card/80');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // -------------------------------------------------------------
+    // UTILITIES: TORCH, RED LIGHT, TOAST, SHARE
+    // -------------------------------------------------------------
+    function toggleTorch() {
+      const overlay = document.getElementById('torch-overlay');
+      const isVis = overlay.style.display === 'flex';
+      overlay.style.display = isVis ? 'none' : 'flex';
+    }
+
+    function toggleNightVision() {
+      initAudioContext();
+      isNightVision = !isNightVision;
+      document.body.classList.toggle('night-vision', isNightVision);
+      const btn = document.getElementById('btn-night-vision');
+      if (isNightVision) {
+        btn.classList.add('bg-rose-600', 'text-white');
+        showToast('Night vision red light active');
+      } else {
+        btn.classList.remove('bg-rose-600', 'text-white');
+        showToast('Normal vision restored');
+      }
+    }
+
+    function showToast(msg, icon = '👻') {
+      const toast = document.getElementById('toast-box');
+      document.getElementById('toast-message').innerText = msg;
+      document.getElementById('toast-icon').innerText = icon;
+
+      toast.classList.remove('opacity-0', '-translate-y-4');
+      toast.classList.add('opacity-100', 'translate-y-0');
+
+      setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', '-translate-y-4');
+      }, 2500);
+    }
+
+    function shareActiveStory() {
+      const story = SCARY_STORIES.find(s => s.id === activeStoryId);
+      if (!story) return;
+      const shareText = `Explore "${story.title}" from Haunted Pasadena - Colorado Street Bridge Ghost Companion!`;
+
+      const tempArea = document.createElement('textarea');
+      tempArea.value = shareText;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Story summary copied to share with Oliver');
+      } catch (e) {
+        showToast('Unable to copy');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    function triggerSearchModal() {
+      showToast('Searching Pasadena paranormal archives...');
+    }
+
+    // -------------------------------------------------------------
+    // ON LOAD
+    // -------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      renderStoriesPlaylist();
+      renderItineraryStops();
+      loadStoryIntoPlayer('baby-miracle');
+      initEmfMeter();
+      initAudioLab();
+
+      // Seed initial log
+      logQuickAnomaly('Expedition Started', 'Oliver and team ready. Baseline calibrated at 1.2 mG');
+
+      // Click to unlock Web Audio on mobile touch
+      document.addEventListener('click', () => {
+        initAudioContext();
+      }, { once: true });
+    });
+  </script>
+</body>
+</html>
